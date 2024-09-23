@@ -14,17 +14,20 @@ import 'package:sheet/sheet.dart';
 
 /// Value extracted from the official sketch iOS UI kit
 /// It is the top offset that will be displayed from the bottom route
-const double _kPreviousRouteVisibleOffset = 10.0;
+// const double _kPreviousRouteVisibleOffset = 10.0;
+const double _kPreviousRouteVisibleOffset = 20.0;
 
 /// Value extracted from the official sketch iOS UI kit
-const Radius _kCupertinoSheetTopRadius = Radius.circular(10.0);
+// const Radius _kCupertinoSheetTopRadius = Radius.circular(10.0);
+const Radius _kCupertinoSheetTopRadius = Radius.zero;
 
 /// Estimated Round corners for iPhone X, XR, 11, 11 Pro
 /// https://kylebashour.com/posts/finding-the-real-iphone-x-corner-radius
 /// It used to animate the bottom route with a top radius that matches
 /// the frame radius. If the device doesn't have round corners it will use
 /// Radius.zero
-const Radius _kRoundedDeviceRadius = Radius.circular(38.5);
+// const Radius _kRoundedDeviceRadius = Radius.circular(38.5);
+const Radius _kRoundedDeviceRadius = Radius.zero;
 
 /// Minimal distance from the top of the screen to the top of the previous route
 /// It will be used ff the top safe area is less than this value.
