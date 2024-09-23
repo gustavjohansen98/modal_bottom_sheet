@@ -15,7 +15,7 @@ import 'package:sheet/sheet.dart';
 /// Value extracted from the official sketch iOS UI kit
 /// It is the top offset that will be displayed from the bottom route
 // const double _kPreviousRouteVisibleOffset = 10.0;
-const double _kPreviousRouteVisibleOffset = 20.0;
+const double _kPreviousRouteVisibleOffset = 80.0;
 
 /// Value extracted from the official sketch iOS UI kit
 // const Radius _kCupertinoSheetTopRadius = Radius.circular(10.0);
