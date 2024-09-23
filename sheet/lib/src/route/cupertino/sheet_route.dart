@@ -14,20 +14,17 @@ import 'package:sheet/sheet.dart';
 
 /// Value extracted from the official sketch iOS UI kit
 /// It is the top offset that will be displayed from the bottom route
-// const double _kPreviousRouteVisibleOffset = 10.0;
-const double _kPreviousRouteVisibleOffset = 80.0;
+const double _kPreviousRouteVisibleOffset = 10.0;
 
 /// Value extracted from the official sketch iOS UI kit
-// const Radius _kCupertinoSheetTopRadius = Radius.circular(10.0);
-const Radius _kCupertinoSheetTopRadius = Radius.zero;
+const Radius _kCupertinoSheetTopRadius = Radius.circular(10.0);
 
 /// Estimated Round corners for iPhone X, XR, 11, 11 Pro
 /// https://kylebashour.com/posts/finding-the-real-iphone-x-corner-radius
 /// It used to animate the bottom route with a top radius that matches
 /// the frame radius. If the device doesn't have round corners it will use
 /// Radius.zero
-// const Radius _kRoundedDeviceRadius = Radius.circular(38.5);
-const Radius _kRoundedDeviceRadius = Radius.zero;
+const Radius _kRoundedDeviceRadius = Radius.circular(38.5);
 
 /// Minimal distance from the top of the screen to the top of the previous route
 /// It will be used ff the top safe area is less than this value.
@@ -51,11 +48,14 @@ class _CupertinoSheetDecorationBuilder extends StatelessWidget {
   const _CupertinoSheetDecorationBuilder({
     required this.child,
     required this.topRadius,
+    this.dragBar,
     this.backgroundColor,
   });
 
   /// The child contained by the modal sheet
   final Widget child;
+
+  final Widget? dragBar;
 
   /// The color to paint behind the child
   final Color? backgroundColor;
@@ -69,18 +69,25 @@ class _CupertinoSheetDecorationBuilder extends StatelessWidget {
       data: CupertinoUserInterfaceLevelData.elevated,
       child: Builder(
         builder: (BuildContext context) {
-          return Container(
-            clipBehavior: Clip.hardEdge,
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.vertical(top: topRadius),
-              color: backgroundColor ??
-                  CupertinoColors.systemBackground.resolveFrom(context),
-            ),
-            child: MediaQuery.removePadding(
-              context: context,
-              removeTop: true,
-              child: child,
-            ),
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Container(child: dragBar),
+              Expanded(
+                child: Container(
+                  clipBehavior: Clip.hardEdge,
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.vertical(top: topRadius),
+                    color: backgroundColor ?? CupertinoColors.systemBackground.resolveFrom(context),
+                  ),
+                  child: MediaQuery.removePadding(
+                    context: context,
+                    removeTop: true,
+                    child: child,
+                  ),
+                ),
+              ),
+            ],
           );
         },
       ),
@@ -96,8 +103,18 @@ class _CupertinoSheetDecorationBuilder extends StatelessWidget {
 ///
 /// * [CupertinoSheetPage], which is the [Page] version of this class
 class CupertinoSheetRoute<T> extends SheetRoute<T> {
+
+  final Radius? radius;
+  final Radius? radiusPrevious;
+  final Widget? dragBar;
+  final double offsetToPrevious;
+
   CupertinoSheetRoute({
     required WidgetBuilder builder,
+    this.radius,
+    this.radiusPrevious,
+    this.dragBar,
+    this.offsetToPrevious = _kPreviousRouteVisibleOffset,
     super.stops,
     double initialStop = 1,
     super.settings,
@@ -108,8 +125,9 @@ class CupertinoSheetRoute<T> extends SheetRoute<T> {
           builder: (BuildContext context) {
             return _CupertinoSheetDecorationBuilder(
               child: Builder(builder: builder),
+              dragBar: dragBar,
               backgroundColor: backgroundColor,
-              topRadius: _kCupertinoSheetTopRadius,
+              topRadius: radius ?? _kCupertinoSheetTopRadius,
             );
           },
           animationCurve: _kCupertinoSheetCurve,
@@ -143,9 +161,7 @@ class CupertinoSheetRoute<T> extends SheetRoute<T> {
       effectivePhysics = const NeverDraggableSheetPhysics();
     }
     final MediaQueryData mediaQuery = MediaQuery.of(context);
-    final double topMargin =
-        math.max(_kSheetMinimalOffset, mediaQuery.padding.top) +
-            _kPreviousRouteVisibleOffset;
+    final double topMargin = math.max(_kSheetMinimalOffset, mediaQuery.padding.top) + offsetToPrevious;
     return Sheet.raw(
       initialExtent: initialExtent,
       decorationBuilder: decorationBuilder,
@@ -175,8 +191,7 @@ class CupertinoSheetRoute<T> extends SheetRoute<T> {
       builder: (BuildContext context, Widget? child) {
         final double progress = secondaryAnimation.value;
         final double scale = 1 - progress / 10;
-        final double distanceWithScale =
-            (topOffset + _kPreviousRouteVisibleOffset) * 0.9;
+        final double distanceWithScale = (topOffset + offsetToPrevious) * 0.9;
         final Offset offset =
             Offset(0, progress * (topOffset - distanceWithScale));
         return Transform.translate(
@@ -216,6 +231,7 @@ class CupertinoSheetRoute<T> extends SheetRoute<T> {
 
     return CupertinoSheetBottomRouteTransition(
       body: child,
+      topRadius: radiusPrevious,
       sheetAnimation: delayAnimation,
       secondaryAnimation: secondaryAnimation,
     );
@@ -230,9 +246,12 @@ class CupertinoSheetBottomRouteTransition extends StatelessWidget {
     required this.sheetAnimation,
     required this.secondaryAnimation,
     required this.body,
+    this.topRadius,
   });
 
   final Widget body;
+
+  final Radius? topRadius;
 
   final Animation<double> sheetAnimation;
   final Animation<double> secondaryAnimation;
@@ -270,7 +289,7 @@ class CupertinoSheetBottomRouteTransition extends StatelessWidget {
           final double scale = 1 - progress / 10;
           final Radius radius = progress == 0
               ? Radius.zero
-              : Radius.lerp(deviceCorner, _kCupertinoSheetTopRadius, progress)!;
+              : Radius.lerp(deviceCorner, topRadius ?? _kCupertinoSheetTopRadius, progress)!;
           return Stack(
             children: <Widget>[
               Container(color: CupertinoColors.black),
